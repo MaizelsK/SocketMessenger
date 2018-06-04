@@ -50,7 +50,7 @@ namespace SocketMessengerClient
 
         private static void SendMessage(Client client)
         {
-            socket.Connect("10.3.6.62", 3535);
+            socket.Connect("127.0.0.1", 3535);
             Console.Clear();
             Console.WriteLine("Авторизация успешно выполнено\n");
             Console.WriteLine("Введите сообщение:");
