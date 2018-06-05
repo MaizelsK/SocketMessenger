@@ -64,6 +64,7 @@ namespace SocketMessengerClient
 
         private static void SendMessage(Client client)
         {
+<<<<<<< HEAD
             try
             {
                 socket.Connect("10.3.6.62", 3535);
@@ -77,6 +78,14 @@ namespace SocketMessengerClient
                 string jsonObj = JsonConvert.SerializeObject(client);
                 byte[] buffer = Encoding.Default.GetBytes(jsonObj);
 
+=======
+            socket.Connect("127.0.0.1", 3535);
+            Console.Clear();
+            Console.WriteLine("Авторизация успешно выполнено\n");
+            Console.WriteLine("Введите сообщение:");
+            client.MessageText= Console.ReadLine();
+            Console.Clear();
+>>>>>>> f522a1b14560396058bb6853c03b32c3623364ad
 
                 socket.Send(buffer);
 
