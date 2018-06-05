@@ -12,21 +12,21 @@ namespace SocketMessengerServer
     class Program
     {
         private const int defaultPort = 3535;
-        private static Socket listenSocket;
+        private static Socket listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        private static List<Socket> clients = new List<Socket>();
 
         static void Main(string[] args)
         {
-            listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-            listenSocket.Bind(new IPEndPoint(IPAddress.Parse("127.0.0.1"), defaultPort));
+            listenSocket.Bind(new IPEndPoint(IPAddress.Parse("10.3.6.62"), defaultPort));
 
             try
             {
-                listenSocket.Listen(3);
+                listenSocket.Listen(10);
 
                 while (true)
                 {
                     Socket handler = listenSocket.Accept();
+                    clients.Add(handler);
 
                     Task.Run(() => HandleClient(handler));
                 }
@@ -35,36 +35,37 @@ namespace SocketMessengerServer
             {
                 Console.WriteLine(ex.Message);
             }
+
+            listenSocket.Close();
         }
 
+        // Обработка клиента
         static void HandleClient(Socket client)
         {
             ShowNewMember(client);
 
-            while (true)
+            try
             {
-                try
+                while (true)
                 {
                     Message response = GetResponse(client);
 
                     if (response != null)
                     {
                         string message = JsonConvert.SerializeObject(response);
-                        listenSocket.Send(Encoding.Default.GetBytes(message));
+                        SendToAllClients(message);
                     }
-                    //client.Send(Encoding.Default.GetBytes(message));
-                }
-                catch (SocketException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    break;
                 }
             }
+            catch (SocketException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
-            client.Shutdown(SocketShutdown.Both);
-            client.Close();
+            CloseClient(client);
         }
 
+        // Уведомление о новом подключении
         private static void ShowNewMember(Socket client)
         {
             try
@@ -73,11 +74,19 @@ namespace SocketMessengerServer
 
                 if (response != null)
                 {
-                    string newMemberMessage = $"{response.Sender} подключился к серверу";
-                    listenSocket.SendTo(Encoding.Default.GetBytes(newMemberMessage), listenSocket.LocalEndPoint);
+                    Message newConnectionMessage = new Message
+                    {
+                        Sender = "Server",
+                        MessageText = $"{response.Sender} подключился к серверу"
+                    };
 
-                    string cleintMessage = JsonConvert.SerializeObject(response);
-                    listenSocket.SendTo(Encoding.Default.GetBytes(cleintMessage), listenSocket.LocalEndPoint);
+                    Console.WriteLine(newConnectionMessage.MessageText);
+
+                    string newClientMessage = JsonConvert.SerializeObject(newConnectionMessage);
+                    SendToAllClients(newClientMessage);
+
+                    string clientMessage = JsonConvert.SerializeObject(response);
+                    SendToAllClients(clientMessage);
                 }
             }
             catch (SocketException ex)
@@ -86,6 +95,8 @@ namespace SocketMessengerServer
             }
         }
 
+
+        // Получения ответа от клиента
         private static Message GetResponse(Socket client)
         {
             Message response = null;
@@ -110,10 +121,33 @@ namespace SocketMessengerServer
             }
             catch (SocketException ex)
             {
+                throw ex;
+            }
+        }
+
+        // Рассылка сообщения всем клиентам
+        private static void SendToAllClients(string message)
+        {
+            try
+            {
+                foreach (Socket client in clients)
+                {
+                    client.Send(Encoding.Default.GetBytes(message));
+                }
+            }
+            catch (SocketException ex)
+            {
                 Console.WriteLine(ex.Message);
             }
+        }
 
-            return response;
+        // Закрытие клиента
+        private static void CloseClient(Socket client)
+        {
+            clients.Remove(client);
+            client.Shutdown(SocketShutdown.Both);
+            client.Close();
         }
     }
 }
+

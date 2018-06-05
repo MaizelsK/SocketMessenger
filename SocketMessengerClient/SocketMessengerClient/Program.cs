@@ -64,6 +64,7 @@ namespace SocketMessengerClient
 
         private static void SendMessage(Client client)
         {
+             socket.Connect("10.3.6.62", 3535);
 
             try
             {
@@ -77,11 +78,7 @@ namespace SocketMessengerClient
 
                 string jsonObj = JsonConvert.SerializeObject(client);
                 byte[] buffer = Encoding.Default.GetBytes(jsonObj);
-
-
-           
-
-
+                
                 socket.Send(buffer);
 
             }
