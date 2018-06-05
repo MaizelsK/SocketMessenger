@@ -21,7 +21,7 @@ namespace SocketMessengerServer
 
             try
             {
-                listenSocket.Listen(10);
+                listenSocket.Listen(3);
 
                 while (true)
                 {
@@ -42,10 +42,10 @@ namespace SocketMessengerServer
         // Обработка клиента
         static void HandleClient(Socket client)
         {
-            ShowNewMember(client);
-
             try
             {
+                ShowNewMember(client);
+
                 while (true)
                 {
                     Message response = GetResponse(client);
@@ -91,7 +91,7 @@ namespace SocketMessengerServer
             }
             catch (SocketException ex)
             {
-                Console.WriteLine(ex.Message);
+                throw ex;
             }
         }
 
