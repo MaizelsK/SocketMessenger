@@ -33,8 +33,7 @@ namespace SocketMessengerClient
             {
                 bytes = socket.Receive(buffer, buffer.Length, 0);
 
-
-                builder.Append(Encoding.Default.GetString(buffer,0,bytes));
+                //builder.Append(Encoding.Default.GetString(buffer,0,bytes));
                 receivedUser = JsonConvert.DeserializeObject<Client>(Encoding.Default.GetString(buffer));
 
 
@@ -50,7 +49,7 @@ namespace SocketMessengerClient
 
         private static void SendMessage(Client client)
         {
-            socket.Connect("127.0.0.1", 3535);
+            socket.Connect("10.3.6.62", 3535);
             Console.Clear();
             Console.WriteLine("Авторизация успешно выполнено\n");
             Console.WriteLine("Введите сообщение:");
